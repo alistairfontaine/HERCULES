@@ -1,0 +1,17 @@
+# Execution Targets
+bin/
+build/
+*.out
+*.o
+*.obj
+hercules-daemon
+
+# Configuration Tracking
+.vscode/
+.idea/
+*.swp
+*~
+
+# Native Dumps
+tests/*.herc
+tests/*.log

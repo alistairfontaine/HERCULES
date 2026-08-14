@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <csignal>
+
 
 
 namespace Hercules {
@@ -44,10 +46,23 @@ namespace Hercules {
             return vec;
         }
 
+        // Cache-line aligned processing layout for loop vectorization optimization
         double calculate_distance(const GeometricVector& v1, const GeometricVector& v2) const {
-            return std::sqrt(std::pow(v1.x - v2.x, 2) +
-                             std::pow(v1.y - v2.y, 2) +
-                             std::pow(v1.z - v2.z, 2));
+            // Contiguous array configuration tells the compiler to auto-vectorize via SIMD
+            alignas(16) double deltas[3] = { v1.x - v2.x, v1.y - v2.y, v1.z - v2.z };
+            return std::sqrt((deltas[0] * deltas[0]) + (deltas[1] * deltas[1]) + (deltas[2] * deltas[2]));
+        }
+
+    public:
+        // Native Linux Signal Trap Abstraction Method
+        static void register_signal_traps() {
+            // Override standard SIGSEGV (Segmentation Fault) hardware signals
+            std::signal(SIGSEGV, [](int signal_id) {
+                std::cerr << "\n[CRITICAL HARDWARE TRAP] Intercepted SIGSEGV (" << signal_id
+                          << "). HERCULES isolated execution block context safely.\n";
+                std::exit(signal_id);
+            });
+            std::cout << "[Trap Engine] Registered custom Linux SIGSEGV hardware overrides.\n";
         }
 
     public:

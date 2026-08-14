@@ -6,6 +6,9 @@ int main() {
     std::cout << "HERCULES Passive Threat Deflector Core Initiated\n";
     std::cout << "------------------------------------------------\n";
 
+    // Initialize custom hardware signal traps before running execution layers
+    Hercules::DeflectorEngine::register_signal_traps();
+
     Hercules::DeflectorEngine engine;
 
     // Simulate standard, steady execution stack states

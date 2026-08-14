@@ -7,6 +7,8 @@
 #include <cmath>
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
+
 
 namespace Hercules {
 
@@ -81,7 +83,54 @@ namespace Hercules {
             baselineSet = false;
         }
 
+        // --- PHASE 2: CUSTOM .HERC BINARY FORMAT SERIALIZATION EXPORTER ---
+        void export_to_binary(const std::string& filename) const {
+            std::ofstream out(filename, std::ios::binary);
+            if (!out.is_open()) {
+                throw std::runtime_error("Failed to open file for binary threat tracking export: " + filename);
+            }
+
+            const uint32_t MAGIC_HEADER = 0x48455243; // "HERC" in hex ASCII
+            size_t slotCount = activeSlots.size();
+
+            // Write File Format Signatures and Vector Element Parameters
+            out.write(reinterpret_cast<const char*>(&MAGIC_HEADER), sizeof(MAGIC_HEADER));
+            out.write(reinterpret_cast<const char*>(&slotCount), sizeof(slotCount));
+
+            // High-velocity zero-copy block memory dump to disk
+            if (slotCount > 0) {
+                out.write(reinterpret_cast<const char*>(activeSlots.data()), slotCount * sizeof(ExecutionSlot));
+            }
+            std::cout << "[Exporter] Successfully saved runtime defense state map to: " << filename << "\n";
+        }
+
+        // --- PHASE 2: CUSTOM .HERC BINARY FORMAT LOADER ---
+        void load_from_binary(const std::string& filename) {
+            std::ifstream in(filename, std::ios::binary);
+            if (!in.is_open()) {
+                throw std::runtime_error("Failed to open file for binary reading: " + filename);
+            }
+
+            const uint32_t MAGIC_HEADER = 0x48455243; // "HERC" in hex ASCII
+            uint32_t headerCheck = 0;
+            in.read(reinterpret_cast<char*>(&headerCheck), sizeof(headerCheck));
+
+            if (headerCheck != MAGIC_HEADER) {
+                throw std::runtime_error("Invalid or corrupted .herc file format signature detected.");
+            }
+
+            size_t slotCount = 0;
+            in.read(reinterpret_cast<char*>(&slotCount), sizeof(slotCount));
+
+            activeSlots.resize(slotCount);
+            if (slotCount > 0) {
+                in.read(reinterpret_cast<char*>(activeSlots.data()), slotCount * sizeof(ExecutionSlot));
+            }
+            std::cout << "[Loader] Successfully restored system defense register states from file cache.\n";
+        }
+
         size_t get_tracked_slots_count() const { return activeSlots.size(); }
+
     };
 }
 

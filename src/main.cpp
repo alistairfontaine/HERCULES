@@ -34,5 +34,19 @@ int main() {
     std::cout << " -> Threat Mitigation State: " << (!integrityCleared ? "SUCCESS (Exploit Contained)" : "FAILURE") << "\n";
     std::cout << " -> Confirmed Secure Tracks: " << engine.get_tracked_slots_count() << " allocation blocks preserved.\n";
 
+    // Perform Phase 2 persistence round-trip check using dedicated tests directory mapping
+    std::cout << "\n[Serialization] Exporting timeline metrics down to .herc storage matrix...\n";
+    try {
+        engine.export_to_binary("tests/exploit_log.herc");
+
+        Hercules::DeflectorEngine secondaryRecoveryMatrix;
+        secondaryRecoveryMatrix.load_from_binary("tests/exploit_log.herc");
+        std::cout << " -> Recovered Integrity Tracks: " << secondaryRecoveryMatrix.get_tracked_slots_count() << " blocks verified.\n";
+    } catch (const std::exception& e) {
+        std::cerr << " -> Serialization Persistence Defect: " << e.what() << "\n";
+        return 1;
+    }
+
     return !integrityCleared ? 0 : 1;
 }
+

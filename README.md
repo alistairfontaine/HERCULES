@@ -16,3 +16,11 @@ Modern security frameworks are reactive; they parse software activity logs *afte
 - **Core Deflector System:** Low-level execution interceptor engine (`include/HerculesCore.hpp`).
 - **Daemon Interface:** Fast background threat assessment control utility (`src/main.cpp`).
 - **Binary Descriptor Format:** Custom `.herc` state configurations.
+- **Verification Matrix:** Local automated telemetry profiles (`tests/`).
+
+## Local System Operations
+
+### Execute Native Interception Monitor & Serialization Check
+```bash
+./hercules-daemon
+```
